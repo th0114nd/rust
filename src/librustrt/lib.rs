@@ -18,7 +18,7 @@
 #![allow(unknown_features)]
 #![feature(macro_rules, phase, globs, thread_local, asm)]
 #![feature(linkage, lang_items, unsafe_destructor, default_type_params)]
-#![feature(import_shadowing, slicing_syntax)]
+#![feature(slicing_syntax)]
 #![feature(unboxed_closures)]
 #![no_std]
 #![experimental]
