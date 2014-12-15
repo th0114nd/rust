@@ -60,6 +60,7 @@ use vec::Vec;
 
 #[cfg(unix)] use c_str::ToCStr;
 #[cfg(unix)] use libc::c_char;
+#[cfg(windows)] use ops::FnMut;
 
 #[cfg(unix)]
 pub use sys::ext as unix;
@@ -160,53 +161,39 @@ pub fn getcwd() -> IoResult<Path> {
 }
 
 #[cfg(windows)]
-pub mod windoze {
-    use libc::types::os::arch::extra::DWORD;
-    use libc;
-    use ops::FnMut;
-    use option::Option;
-    use option::Option::None;
-    use option;
-    use os::TMPBUF_SZ;
-    use slice::SliceExt;
-    use string::String;
-    use str::StrPrelude;
-    use vec::Vec;
+pub fn fill_utf16_buf_and_decode<F>(mut f: F) -> Option<String> where
+    F: FnMut(*mut u16, libc::DWORD) -> libc::DWORD,
+{
 
-    pub fn fill_utf16_buf_and_decode<F>(mut f: F) -> Option<String> where
-        F: FnMut(*mut u16, DWORD) -> DWORD,
-    {
-
-        unsafe {
-            let mut n = TMPBUF_SZ as DWORD;
-            let mut res = None;
-            let mut done = false;
-            while !done {
-                let mut buf = Vec::from_elem(n as uint, 0u16);
-                let k = f(buf.as_mut_ptr(), n);
-                if k == (0 as DWORD) {
-                    done = true;
-                } else if k == n &&
-                          libc::GetLastError() ==
-                          libc::ERROR_INSUFFICIENT_BUFFER as DWORD {
-                    n *= 2 as DWORD;
-                } else if k >= n {
-                    n = k;
-                } else {
-                    done = true;
-                }
-                if k != 0 && done {
-                    let sub = buf.slice(0, k as uint);
-                    // We want to explicitly catch the case when the
-                    // closure returned invalid UTF-16, rather than
-                    // set `res` to None and continue.
-                    let s = String::from_utf16(sub)
-                        .expect("fill_utf16_buf_and_decode: closure created invalid UTF-16");
-                    res = option::Option::Some(s)
-                }
+    unsafe {
+        let mut n = TMPBUF_SZ as libc::DWORD;
+        let mut res = None;
+        let mut done = false;
+        while !done {
+            let mut buf = Vec::from_elem(n as uint, 0u16);
+            let k = f(buf.as_mut_ptr(), n);
+            if k == (0 as libc::DWORD) {
+                done = true;
+            } else if k == n &&
+                      libc::GetLastError() ==
+                      libc::ERROR_INSUFFICIENT_BUFFER as libc::DWORD {
+                n *= 2 as libc::DWORD;
+            } else if k >= n {
+                n = k;
+            } else {
+                done = true;
             }
-            return res;
+            if k != 0 && done {
+                let sub = buf.slice(0, k as uint);
+                // We want to explicitly catch the case when the
+                // closure returned invalid UTF-16, rather than
+                // set `res` to None and continue.
+                let s = String::from_utf16(sub)
+                    .expect("fill_utf16_buf_and_decode: closure created invalid UTF-16");
+                res = Some(s)
+            }
         }
+        return res;
     }
 }
 
@@ -390,7 +377,6 @@ pub fn getenv_as_bytes(n: &str) -> Option<Vec<u8>> {
 pub fn getenv(n: &str) -> Option<String> {
     unsafe {
         with_env_lock(|| {
-            use os::windoze::{fill_utf16_buf_and_decode};
             let mut n: Vec<u16> = n.utf16_units().collect();
             n.push(0);
             fill_utf16_buf_and_decode(|buf, sz| {
@@ -719,7 +705,6 @@ pub fn self_exe_name() -> Option<Path> {
     #[cfg(windows)]
     fn load_self() -> Option<Vec<u8>> {
         unsafe {
-            use os::windoze::fill_utf16_buf_and_decode;
             fill_utf16_buf_and_decode(|buf, sz| {
                 libc::GetModuleFileNameW(0u as libc::DWORD, buf, sz)
             }).map(|s| s.into_string().into_bytes())

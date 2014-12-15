@@ -19,7 +19,6 @@ use core::fmt;
 use core::fmt::Show;
 use core::mem::zeroed;
 use core::mem;
-use core::ops::{Slice, SliceMut};
 use core::uint;
 use core::iter;
 use core::ptr;
