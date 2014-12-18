@@ -72,11 +72,10 @@ use core::prelude::*;
 use collections::string::String;
 use core::hash;
 use core::fmt;
-use core::kinds::{Sized, marker};
+use core::kinds::marker;
 use core::mem;
 use core::ptr;
-use core::raw::Slice;
-use core::slice;
+use core::slice::{mod, ImmutableIntSlice};
 use core::str;
 use libc;
 
@@ -210,7 +209,7 @@ impl CString {
     #[inline]
     pub fn as_bytes<'a>(&'a self) -> &'a [u8] {
         unsafe {
-            mem::transmute(Slice { data: self.buf, len: self.len() + 1 })
+            slice::from_raw_buf(&self.buf, self.len() + 1).as_unsigned()
         }
     }
 
@@ -219,7 +218,7 @@ impl CString {
     #[inline]
     pub fn as_bytes_no_nul<'a>(&'a self) -> &'a [u8] {
         unsafe {
-            mem::transmute(Slice { data: self.buf, len: self.len() })
+            slice::from_raw_buf(&self.buf, self.len()).as_unsigned()
         }
     }
 

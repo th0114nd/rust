@@ -131,12 +131,12 @@ pub enum Entry<'a, K:'a, V:'a> {
 /// A vacant Entry.
 pub struct VacantEntry<'a, K:'a, V:'a> {
     key: K,
-    stack: stack::SearchStack<'a, K, V, node::Edge, node::Leaf>,
+    stack: stack::SearchStack<'a, K, V, node::EdgeH, node::LeafNode>,
 }
 
 /// An occupied Entry.
 pub struct OccupiedEntry<'a, K:'a, V:'a> {
-    stack: stack::SearchStack<'a, K, V, node::KV, node::LeafOrInternal>,
+    stack: stack::SearchStack<'a, K, V, node::KV, node::AnyNode>,
 }
 
 impl<K: Ord, V> BTreeMap<K, V> {
@@ -496,7 +496,8 @@ mod stack {
     use core::kinds::marker;
     use core::mem;
     use super::BTreeMap;
-    use super::super::node::{mod, Node, Fit, Split, KV, Edge, Internal, Leaf, LeafOrInternal};
+    use super::super::node::{mod, Node, EdgeH, Fit, Split, Internal, KV, Leaf};
+    use super::super::node::{AnyNode, InternalNode, LeafNode};
     use vec::Vec;
 
     /// A generic mutable reference, identical to `&mut` except for the fact that its lifetime
@@ -520,7 +521,7 @@ mod stack {
         }
     }
 
-    type StackItem<K, V> = node::Handle<*mut Node<K, V>, Edge, Internal>;
+    type StackItem<K, V> = node::Handle<*mut Node<K, V>, EdgeH, InternalNode>;
     type Stack<K, V> = Vec<StackItem<K, V>>;
 
     /// A `PartialSearchStack` handles the construction of a search stack.
@@ -595,7 +596,7 @@ mod stack {
         /// Pushes the requested child of the stack's current top on top of the stack. If the child
         /// exists, then a new PartialSearchStack is yielded. Otherwise, a VacantSearchStack is
         /// yielded.
-        pub fn push(mut self, mut edge: node::Handle<IdRef<'id, Node<K, V>>, Edge, Internal>)
+        pub fn push(mut self, mut edge: node::Handle<IdRef<'id, Node<K, V>>, EdgeH, InternalNode>)
                     -> PartialSearchStack<'a, K, V> {
             self.stack.push(edge.as_raw());
             PartialSearchStack {
@@ -640,7 +641,7 @@ mod stack {
         }
     }
 
-    impl<'a, K, V> SearchStack<'a, K, V, KV, Leaf> {
+    impl<'a, K, V> SearchStack<'a, K, V, KV, LeafNode> {
         /// Removes the key and value in the top element of the stack, then handles underflows as
         /// described in BTree's pop function.
         fn remove_leaf(mut self) -> V {
@@ -686,7 +687,7 @@ mod stack {
         }
     }
 
-    impl<'a, K, V> SearchStack<'a, K, V, KV, LeafOrInternal> {
+    impl<'a, K, V> SearchStack<'a, K, V, KV, AnyNode> {
         /// Removes the key and value in the top element of the stack, then handles underflows as
         /// described in BTree's pop function.
         pub fn remove(self) -> V {
@@ -703,7 +704,7 @@ mod stack {
         /// leaves the tree in an inconsistent state that must be repaired by the caller by
         /// removing the entry in question. Specifically the key-value pair and its successor will
         /// become swapped.
-        fn into_leaf(mut self) -> SearchStack<'a, K, V, KV, Leaf> {
+        fn into_leaf(mut self) -> SearchStack<'a, K, V, KV, LeafNode> {
             unsafe {
                 let mut top_raw = self.top;
                 let mut top = top_raw.from_raw_mut();
@@ -757,7 +758,7 @@ mod stack {
         }
     }
 
-    impl<'a, K, V> SearchStack<'a, K, V, Edge, Leaf> {
+    impl<'a, K, V> SearchStack<'a, K, V, EdgeH, LeafNode> {
         /// Inserts the key and value into the top element in the stack, and if that node has to
         /// split recursively inserts the split contents into the next element stack until
         /// splits stop.
