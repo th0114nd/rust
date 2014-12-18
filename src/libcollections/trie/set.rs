@@ -748,9 +748,8 @@ impl<'a> Iterator<uint> for UnionItems<'a> {
 
 #[cfg(test)]
 mod test {
-    use std::prelude::*;
-    use std::uint;
-    use vec::Vec;
+    use prelude::*;
+    use core::uint;
 
     use super::TrieSet;
 

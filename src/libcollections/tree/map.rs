@@ -1321,7 +1321,7 @@ impl<S: Writer, K: Ord + Hash<S>, V: Hash<S>> Hash<S> for TreeMap<K, V> {
 
 #[cfg(test)]
 mod test_treemap {
-    use std::prelude::*;
+    use prelude::*;
     use std::rand::Rng;
     use std::rand;
 
@@ -1855,7 +1855,7 @@ mod test_treemap {
 
 #[cfg(test)]
 mod bench {
-    use std::prelude::*;
+    use prelude::*;
     use std::rand::{weak_rng, Rng};
     use test::{Bencher, black_box};
 

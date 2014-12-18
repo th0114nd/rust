@@ -278,16 +278,12 @@ pub fn failing() -> bool {
 
 #[cfg(test)]
 mod test {
+    use prelude::*;
+
     use any::{Any, AnyRefExt};
-    use borrow::IntoCow;
     use boxed::BoxAny;
-    use prelude::*;
-    use result::Result::{Ok, Err};
-    use result;
     use std::io::{ChanReader, ChanWriter};
-    use string::String;
     use thunk::Thunk;
-    use prelude::*;
     use super::*;
 
     // !!! These tests are dangerous. If something is buggy, they will hang, !!!
@@ -346,7 +342,7 @@ mod test {
         match try(move|| {
             "Success!".to_string()
         }).as_ref().map(|s| s.as_slice()) {
-            result::Result::Ok("Success!") => (),
+            Ok("Success!") => (),
             _ => panic!()
         }
     }
@@ -356,8 +352,8 @@ mod test {
         match try(move|| {
             panic!()
         }) {
-            result::Result::Err(_) => (),
-            result::Result::Ok(()) => panic!()
+            Err(_) => (),
+            Ok(()) => panic!()
         }
     }
 

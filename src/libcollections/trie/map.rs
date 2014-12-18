@@ -1221,9 +1221,9 @@ iterator_impl! { MutEntries, iter = iter_mut, mutability = mut }
 
 #[cfg(test)]
 mod test {
-    use std::prelude::*;
-    use std::iter::range_step;
-    use std::uint;
+    use prelude::*;
+    use core::iter::range_step;
+    use core::uint;
     use std::hash;
 
     use super::{TrieMap, InternalNode};
@@ -1768,7 +1768,7 @@ mod test {
 
 #[cfg(test)]
 mod bench {
-    use std::prelude::*;
+    use prelude::*;
     use std::rand::{weak_rng, Rng};
     use test::{Bencher, black_box};
 

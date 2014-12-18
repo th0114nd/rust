@@ -876,9 +876,8 @@ impl<S: Writer, T: Ord + Hash<S>> Hash<S> for TreeSet<T> {
 
 #[cfg(test)]
 mod test {
-    use std::prelude::*;
+    use prelude::*;
     use std::hash;
-    use vec::Vec;
 
     use super::TreeSet;
 

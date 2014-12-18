@@ -1773,7 +1773,6 @@ mod arch_consts {
 #[cfg(test)]
 mod tests {
     use prelude::*;
-    use c_str::ToCStr;
     use option;
     use os::{env, getcwd, getenv, make_absolute};
     use os::{split_paths, join_paths, setenv, unsetenv};

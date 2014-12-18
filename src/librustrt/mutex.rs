@@ -663,7 +663,6 @@ mod imp {
 mod test {
     use std::prelude::*;
 
-    use std::mem::drop;
     use super::{StaticNativeMutex, NATIVE_MUTEX_INIT};
     use thread::Thread;
 
